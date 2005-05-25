@@ -17,6 +17,7 @@ BuildRequires:	autoconf
 BuildRequires:	libtool
 BuildRequires:	findutils
 Requires:	rc-scripts >= 0.4.0.17
+Requires(post):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
