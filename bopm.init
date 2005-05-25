@@ -2,7 +2,7 @@
 #
 # bopm	BOPM daemon.
 #
-# chkconfig: 345 80 30
+# chkconfig: 345 80 20
 #
 # description:	The Blitzed Open Proxy Monitor
 #
@@ -45,7 +45,7 @@ stop)
 		# Stop daemons.
 		msg_stopping bopm
 		killproc --pidfile bopm/bopm.pid bopm
-		rm -f /var/lock/subsys/bopm
+		rm -f /var/lock/subsys/bopm /var/run/bopm/bopm.pid
 	else
 		msg_not_running bopm
 	fi
