@@ -16,7 +16,7 @@ BuildRequires:	automake
 BuildRequires:	autoconf
 BuildRequires:	libtool
 BuildRequires:	findutils
-Requires:	rc-scripts
+Requires:	rc-scripts >= 0.4.0.17
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
