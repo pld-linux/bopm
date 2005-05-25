@@ -9,13 +9,13 @@ Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}
 # Source0-md5:	ab1b7494c4242eef957b5fca61c92b18
 Source1:	%{name}.init
 Source2:	%{name}.conf
-BuildRequires:	rpmbuild(macros) >= 1.202
 Patch0:		%{name}-DESTDIR.patch
 URL:		http://www.blitzed.org/bopm/
-BuildRequires:	automake
 BuildRequires:	autoconf
-BuildRequires:	libtool
+BuildRequires:	automake
 BuildRequires:	findutils
+BuildRequires:	libtool
+BuildRequires:	rpmbuild(macros) >= 1.202
 Requires:	rc-scripts >= 0.4.0.17
 Requires(post):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
