@@ -1,4 +1,6 @@
+# TODO: user/group removal
 Summary:	Open proxy monitor and blocker, designed for use with ircds
+Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
 Release:	0.10
@@ -13,11 +15,14 @@ Patch0:		%{name}-DESTDIR.patch
 URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	findutils
 BuildRequires:	libtool
 BuildRequires:	rpmbuild(macros) >= 1.202
-Requires:	rc-scripts >= 0.4.0.17
-Requires(post):	/sbin/chkconfig
+PreReq:		rc-scripts >= 0.4.0.17
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/bin/id
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Requires(post,preun):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -32,6 +37,19 @@ routers with default passwords. BOPM also has support for checking
 against a DNS-Based Blacklist (similar to MAPS RBL) and can be
 configured to report new proxies back to the Blitzed Open Proxy
 Monitoring project.
+
+%description -l pl
+Blitzed Open Proxy Monitor jest zaprojektowany tak, ¿e ³±czy siê z
+serwerem IRC i staje operatorem. Nastêpnie ogl±da informacje o
+po³±czeniach w celu skanowania wszystkich klientów pod k±tem otwartych
+(niebezpiecznych) proxy. Takie niebezpieczne proxy zwykle s± u¿ywane
+do spamowania, floodowania i innych nadu¿yæ.
+
+BOPM jest w stanie wykryæ WinGates, proxy HTTP, proxy SOCKS 4/5 oraz
+routery Cisco z domy¶lnymi has³ami. BOPM obs³uguje tak¿e sprawdzanie
+czarnych list opartych na DNS (takich jak MAPS RBL) i mo¿e byæ
+skonfigurowany do zg³aszania nowych proxy z powrotem do projektu
+Blitzed Open Proxy Monitoring. 
 
 %prep
 %setup -q
@@ -54,8 +72,8 @@ rm -f contrib/bopm.spec
 
 %install
 rm -rf $RPM_BUILD_ROOT
-
 install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,/var/{run,log}/%{name}}
+
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
