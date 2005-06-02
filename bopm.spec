@@ -1,9 +1,8 @@
-# TODO: user/group removal
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.10
+Release:	0.11
 Epoch:		0
 License:	GPL
 Group:		Applications/Communications
@@ -22,6 +21,8 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires(postun):	/usr/sbin/userdel
+Requires(postun):	/usr/sbin/groupdel
 Requires(post,preun):	/sbin/chkconfig
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -103,6 +104,12 @@ if [ "$1" = "0" ]; then
 		/etc/rc.d/init.d/%{name} stop 1>&2
 	fi
 	/sbin/chkconfig --del %{name}
+fi
+
+%postun
+if [ "$1" = "0" ]; then
+	%userremove %{name}
+	%groupremove %{name}
 fi
 
 %files
