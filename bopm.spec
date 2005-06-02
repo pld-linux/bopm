@@ -14,6 +14,7 @@ Patch0:		%{name}-DESTDIR.patch
 URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	findutils
 BuildRequires:	libtool
 BuildRequires:	rpmbuild(macros) >= 1.202
 PreReq:		rc-scripts >= 0.4.0.17
