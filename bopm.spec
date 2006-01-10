@@ -2,7 +2,7 @@ Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.12
+Release:	0.14
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -10,11 +10,13 @@ Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Patch0:		%{name}-DESTDIR.patch
+Patch1:		%{name}-shared.patch
 URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
 BuildRequires:	rpmbuild(macros) >= 1.268
+Requires:	%{name} = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -53,10 +55,19 @@ czarnych list opartych na DNS (takich jak MAPS RBL) i mo¿e byæ
 skonfigurowany do zg³aszania nowych proxy z powrotem do projektu
 Blitzed Open Proxy Monitoring.
 
+%package libs
+Summary:	libopm open proxy scanning library
+Group:		Libraries
+
+%description libs
+libopm open proxy scanning library.
+
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
+# we include contrib in %doc. cleanup it
 find -name CVS | xargs -r rm -rf
 rm -f contrib/bopm.spec
 
@@ -107,6 +118,9 @@ if [ "$1" = "0" ]; then
 	%groupremove %{name}
 fi
 
+%post	libs -p /sbin/ldconfig
+%postun	libs -p /sbin/ldconfig
+
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog INSTALL README bopm.conf.sample
@@ -119,3 +133,22 @@ fi
 %attr(770,root,bopm) %dir /var/log/%{name}
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/bopm.log
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/scan.log
+
+%files libs
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libopm.so.*.*.*
+
+# oneday when -devel is created
+%if 0
+%files devel
+%defattr(644,root,root,755)
+%{_includedir}/opm.h
+%{_includedir}/opm_common.h
+%{_includedir}/opm_error.h
+%{_includedir}/opm_types.h
+%{_libdir}/libopm.la
+
+%files static
+%defattr(644,root,root,755)
+%{_libdir}/libopm.a
+%endif
