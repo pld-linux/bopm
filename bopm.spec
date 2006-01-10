@@ -1,9 +1,14 @@
+#
+# Conditional build:
+%bcond_without	tests	# do not perform "make test"
+#
 %include	/usr/lib/rpm/macros.perl
+%define		pnam	OPM
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.17
+Release:	0.18
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -80,13 +85,13 @@ Requires:	%{name}-devel = %{version}-%{release}
 %description static
 Static libopm library.
 
-%package -n perl-OPM
+%package -n perl-%{pnam}
 Summary:	OPM - Perl interface to libopm open proxy scanning library
 Group:		Development/Languages/Perl
 Requires:	%{name}-libs = %{version}-%{release}
 # should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
 
-%description -n perl-OPM
+%description -n perl-%{pnam}
 OPM - Perl interface to libopm open proxy scanning library.
 
 %prep
@@ -115,6 +120,7 @@ cd src/libopm/OPM
 	INSTALLDIRS=vendor
 %{__make} \
 	OPTIMIZE="%{rpmcflags}"
+%{?with_tests:%{__make} test}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -131,9 +137,9 @@ install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 cd src/libopm/OPM
 %{__make} pure_install \
 	DESTDIR=$RPM_BUILD_ROOT
-rm -f $RPM_BUILD_ROOT%{perl_vendorarch}/auto/OPM/.packlist
-install -d $RPM_BUILD_ROOT%{_examplesdir}/perl-OPM-%{version}
-mv $RPM_BUILD_ROOT{%{perl_vendorarch},%{_examplesdir}/perl-OPM-%{version}}/bopchecker.pl
+rm -f $RPM_BUILD_ROOT%{perl_vendorarch}/auto/%{pnam}/.packlist
+install -d $RPM_BUILD_ROOT%{_examplesdir}/perl-%{pnam}-%{version}
+mv $RPM_BUILD_ROOT{%{perl_vendorarch},%{_examplesdir}/perl-%{pnam}-%{version}}/bopchecker.pl
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -190,7 +196,7 @@ fi
 %defattr(644,root,root,755)
 %{_libdir}/libopm.a
 
-%files -n perl-OPM
+%files -n perl-%{pnam}
 %defattr(644,root,root,755)
 %{perl_vendorarch}/OPM.pm
 %dir %{perl_vendorarch}/auto/OPM
