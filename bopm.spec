@@ -1,8 +1,9 @@
+%include	/usr/lib/rpm/macros.perl
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.14
+Release:	0.17
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -15,8 +16,8 @@ URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
+BuildRequires:	rpm-perlprov >= 4.1-13
 BuildRequires:	rpmbuild(macros) >= 1.268
-Requires:	%{name} = %{version}-%{release}
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -24,6 +25,7 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	%{name}-libs = %{version}-%{release}
 Requires:	rc-scripts >= 0.4.0.17
 Provides:	group(%{name})
 Provides:	user(%{name})
@@ -62,6 +64,31 @@ Group:		Libraries
 %description libs
 libopm open proxy scanning library.
 
+%package devel
+Summary:	Header files for libopm library
+Group:		Development/Libraries
+Requires:	%{name}-libs = %{version}-%{release}
+
+%description devel
+This is the package containing the header files for libopm library.
+
+%package static
+Summary:	Static ... library
+Group:		Development/Libraries
+Requires:	%{name}-devel = %{version}-%{release}
+
+%description static
+Static libopm library.
+
+%package -n perl-OPM
+Summary:	OPM - Perl interface to libopm open proxy scanning library
+Group:		Development/Languages/Perl
+Requires:	%{name}-libs = %{version}-%{release}
+# should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
+
+%description -n perl-OPM
+OPM - Perl interface to libopm open proxy scanning library.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -83,6 +110,12 @@ rm -f contrib/bopm.spec
 
 %{__make}
 
+cd src/libopm/OPM
+%{__perl} Makefile.PL \
+	INSTALLDIRS=vendor
+%{__make} \
+	OPTIMIZE="%{rpmcflags}"
+
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,/var/{run,log}/%{name}}
@@ -94,6 +127,13 @@ install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 > $RPM_BUILD_ROOT/var/log/%{name}/bopm.log
 > $RPM_BUILD_ROOT/var/log/%{name}/scan.log
+
+cd src/libopm/OPM
+%{__make} pure_install \
+	DESTDIR=$RPM_BUILD_ROOT
+rm -f $RPM_BUILD_ROOT%{perl_vendorarch}/auto/OPM/.packlist
+install -d $RPM_BUILD_ROOT%{_examplesdir}/perl-OPM-%{version}
+mv $RPM_BUILD_ROOT{%{perl_vendorarch},%{_examplesdir}/perl-OPM-%{version}}/bopchecker.pl
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -138,8 +178,6 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libopm.so.*.*.*
 
-# oneday when -devel is created
-%if 0
 %files devel
 %defattr(644,root,root,755)
 %{_includedir}/opm.h
@@ -151,4 +189,12 @@ fi
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libopm.a
-%endif
+
+%files -n perl-OPM
+%defattr(644,root,root,755)
+%{perl_vendorarch}/OPM.pm
+%dir %{perl_vendorarch}/auto/OPM
+%{perl_vendorarch}/auto/OPM/OPM.bs
+%attr(755,root,root) %{perl_vendorarch}/auto/OPM/OPM.so
+%{_examplesdir}/perl-OPM-%{version}
+%{_mandir}/man3/OPM.3pm*
