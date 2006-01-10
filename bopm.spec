@@ -8,7 +8,7 @@ Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.19
+Release:	0.20
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -17,6 +17,7 @@ Source1:	%{name}.init
 Source2:	%{name}.conf
 Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
+Patch2:		%{name}-cr-connect.patch
 URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -98,6 +99,7 @@ OPM - Perl interface to libopm open proxy scanning library.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p0
 
 # we include contrib in %doc. cleanup it
 find -name CVS | xargs -r rm -rf
