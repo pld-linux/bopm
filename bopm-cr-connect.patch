@@ -1,0 +1,30 @@
+Index: src/irc.c
+===================================================================
+RCS file: /data/cvs/bopm/src/irc.c,v
+retrieving revision 1.27
+diff -u -r1.27 irc.c
+--- src/irc.c	29 Nov 2003 19:56:19 -0000	1.27
++++ src/irc.c	9 Jul 2004 14:31:25 -0000
+@@ -1056,6 +1056,22 @@
+       *(parv[3] + pmatch[i + 1].rm_eo) = '\0';
+    }
+ 
++   // make user[3] as ip, for ConverenceRoom
++   // this should be config option instead?
++   // glen 2004-04-17
++   {
++      struct in_addr *addr;
++
++   /* If IP is a hostname, resolve it using gethostbyname (which will block!) */
++      if (!(addr = firedns_resolveip4(user[3]))) {
++          log_printf("IRC REGEX -> Error resolving host '%s': %s",
++                user[3], firedns_strerror(fdns_errno));
++      } else {
++         /* IP = the resolved IP now (it was the ip OR hostname before) */
++         user[3] = inet_ntoa(*addr);
++      }
++   }
++
+    if(OPT_DEBUG > 0)
+       log_printf("IRC REGEX -> Parsed %s!%s@%s [%s] from connection notice.",
+           user[0], user[1], user[2], user[3]);
