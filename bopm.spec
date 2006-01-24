@@ -65,35 +65,52 @@ Blitzed Open Proxy Monitoring.
 
 %package libs
 Summary:	libopm open proxy scanning library
+Summary(pl):	Biblioteka libopm do szukania otwartych proxy
 Group:		Libraries
 
 %description libs
 libopm open proxy scanning library.
 
+%description libs -l pl
+Biblioteka libopm do szukania otwartych proxy.
+
 %package devel
 Summary:	Header files for libopm library
+Summary(pl):	Pliki nag³ówkowe biblioteki libopm
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 
 %description devel
 This is the package containing the header files for libopm library.
 
+%description devel -l pl
+Ten pakiet zawiera pliki nag³ówkowe biblioteki libopm.
+
 %package static
-Summary:	Static ... library
+Summary:	Static libopm library
+Summary(pl):	Statyczna biblioteka libopm
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
 %description static
 Static libopm library.
 
+%description static -l pl
+Statyczna biblioteka libopm.
+
 %package -n perl-%{pnam}
 Summary:	OPM - Perl interface to libopm open proxy scanning library
+Summary(pl):	OPM - perlowy interfejs do biblioteki libopm szukaj±cej otwartych proxy
 Group:		Development/Languages/Perl
 Requires:	%{name}-libs = %{version}-%{release}
 # should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
 
 %description -n perl-%{pnam}
 OPM - Perl interface to libopm open proxy scanning library.
+
+%description -n perl-%{pnam} -l pl
+OPM - perlowy interfejs do biblioteki libopm szukaj±cej otwartych
+proxy.
 
 %prep
 %setup -q
