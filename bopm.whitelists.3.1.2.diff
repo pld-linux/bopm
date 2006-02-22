@@ -1,0 +1,367 @@
+? src/bopm.pid
+? src/libopm
+Index: src/config-lexer.l
+===================================================================
+RCS file: /data/cvs/bopm/src/config-lexer.l,v
+retrieving revision 1.6
+diff -u -6 -r1.6 config-lexer.l
+--- src/config-lexer.l	19 Jun 2003 23:07:57 -0000	1.6
++++ src/config-lexer.l	26 Jun 2003 21:06:49 -0000
+@@ -89,12 +89,13 @@
+                                  return STRING;
+                               }
+                            }
+              
+                         }
+ 
++ALERT                   { return ALERT;        }
+ AWAY                    { return AWAY;         }
+ BAN_UNKNOWN             { return BAN_UNKNOWN;  }
+ BLACKLIST               { return BLACKLIST;    }
+ CHANNEL                 { return CHANNEL;      }
+ CONNREGEX               { return CONNREGEX;    }
+ DNS_FDLIMIT             { return DNS_FDLIMIT;  }
+@@ -132,12 +133,13 @@
+ TARGET_STRING           { return TARGET_STRING;}
+ TIMEOUT                 { return TIMEOUT;      }
+ TYPE                    { return TYPE;         }
+ USER                    { return USER;         }
+ USERNAME                { return USERNAME;     }
+ VHOST                   { return VHOST;        }
++WHITELIST               { return WHITELIST;    }
+ 
+ 
+ HTTP                    {
+                           yylval.number = OPM_TYPE_HTTP;
+                           return PROTOCOLTYPE;
+                         }
+Index: src/config-parser.y
+===================================================================
+RCS file: /data/cvs/bopm/src/config-parser.y,v
+retrieving revision 1.7
+diff -u -6 -r1.7 config-parser.y
+--- src/config-parser.y	22 Jun 2003 13:19:39 -0000	1.7
++++ src/config-parser.y	26 Jun 2003 21:06:49 -0000
+@@ -30,12 +30,13 @@
+ 
+ int yydebug=0;
+ void *tmp;        /* Variable to temporarily hold nodes before insertion to list */
+ 
+ %}
+ 
++%token ALERT
+ %token AWAY
+ %token BAN_UNKNOWN
+ %token BLACKLIST
+ %token CHANNEL
+ %token CONNREGEX
+ %token DNS_FDLIMIT
+@@ -74,12 +75,13 @@
+ %token TARGET_STRING
+ %token TIMEOUT
+ %token TYPE
+ %token USERNAME
+ %token USER
+ %token VHOST
++%token WHITELIST
+ 
+ %union 
+ {
+         int number;
+         char *string;
+ }
+@@ -526,12 +528,14 @@
+ 
+    item = MyMalloc(sizeof *item);
+ 
+    item->name = DupString("");
+    item->kline = DupString("");
+    item->ban_unknown = 0;
++   item->whitelist = 0;
++   item->alert = 1;
+    item->type = A_BITMASK;
+    item->reply = list_create();
+ 
+    node = node_create(item);
+    list_add(OpmItem->blacklists, node);
+ 
+@@ -542,14 +546,16 @@
+ blacklist_items: /* Empty */                 |
+               blacklist_items blacklist_item |
+               blacklist_item;
+ 
+ blacklist_item: blacklist_name        |
+                 blacklist_type        |
++                blacklist_whitelist   |
+                 blacklist_kline       |
+                 blacklist_ban_unknown |
++                blacklist_alert       |
+                 blacklist_reply       |
+                 error;
+ 
+ blacklist_name: NAME '=' STRING ';' {
+    struct BlacklistConf *item = tmp;
+ 
+@@ -570,12 +576,24 @@
+    if(strcmp("A record bitmask", $3) == 0)
+       item->type = A_BITMASK;
+    else if(strcmp("A record reply", $3) == 0)
+       item->type = A_REPLY;
+    else
+       yyerror("Unknown blacklist type defined");
++};
++
++blacklist_whitelist: WHITELIST '=' NUMBER ';' {
++   struct BlacklistConf *item = tmp;
++
++   item->whitelist = $3;
++};
++
++blacklist_alert: ALERT '=' NUMBER ';' {
++    struct BlacklistConf *item = tmp;
++
++    item->alert = $3;
+ };
+ 
+ blacklist_ban_unknown: BAN_UNKNOWN '=' NUMBER ';' {
+    struct BlacklistConf *item = tmp;
+ 
+    item->ban_unknown = $3;
+Index: src/config.h
+===================================================================
+RCS file: /data/cvs/bopm/src/config.h,v
+retrieving revision 1.9
+diff -u -6 -r1.9 config.h
+--- src/config.h	21 Jun 2003 00:57:28 -0000	1.9
++++ src/config.h	26 Jun 2003 21:06:49 -0000
+@@ -101,13 +101,15 @@
+ 
+ struct BlacklistConf
+ {
+    char   *name;
+    char   *kline;
+    enum BlacklistType type;
++   int     whitelist;
+    int     ban_unknown;
++   int     alert;
+    list_t *reply;
+    unsigned int stats_recv;
+ };
+ 
+ struct BlacklistReplyConf
+ {
+Index: src/dnsbl.c
+===================================================================
+RCS file: /data/cvs/bopm/src/dnsbl.c,v
+retrieving revision 1.29
+diff -u -6 -r1.29 dnsbl.c
+--- src/dnsbl.c	22 Jun 2003 18:03:41 -0000	1.29
++++ src/dnsbl.c	26 Jun 2003 21:06:49 -0000
+@@ -96,17 +96,27 @@
+ 
+       if(res == -1 && fdns_errno != FDNS_ERR_FDLIMIT)
+       {
+          log_printf("DNSBL -> Error sending dns lookup for '%s': %s", lookup, firedns_strerror(fdns_errno));
+          free(ds);
+       }
+-      else
++      else {
+          ss->scans++; /* Increase scan count - one for each blacklist */
++         if (bl->whitelist)
++            ss->dnsbl_whitelist_count++;  /* Increase whitelist count
++                                           * for each whitelist */
++      }                               
+    }
+ }
+ 
++/* This function gets called when:
++ * - a positive result was obtained from a blacklist
++ * - the last result from the whitelist has been received,
++ *   and a previous blacklist result was positive
++ */
++
+ static void dnsbl_positive(struct scan_struct *ss, struct BlacklistConf *bl, 
+ 		unsigned char type)
+ {
+    char text_type[128];
+    struct BlacklistReplyConf *item;
+    node_t *p;
+@@ -142,43 +152,66 @@
+       }
+    }
+    
+    if(text_type[0] == '\0' && bl->ban_unknown == 0)
+    {
+       if(OPT_DEBUG)
+-         log_printf("DNSBL -> Unknown result from BL zone %s (%d)", bl->name, type);
++         log_printf("DNSBL -> Unknown result from %s zone %s (%d)",
++               (bl->whitelist ? "WL" : "BL"), bl->name, type);
+       return;
+    }
+ 
++   /* record stat */
++   stats_dnsblrecv(bl);
++
++   /* If this was a positive result from a whitelist, flag this user
++    * as whitelisted in the scan struct. This will prevent any future
++    * positive DNSBL blacklist result from klining.
++    */
++   if(bl->whitelist)
++      ss->dnsbl_whitelisted = 1; /* Mark this user as whitelisted */
++   else if(ss->dnsbl_whitelist_count > 0) /* Store data */
++   {
++      ss->dnsbl_positive_bl = bl;
++      ss->dnsbl_positive_type = type;
++      return;     /* Wait until whitelists have finished */
++   }
++
+    if(ss->manual_target)
+    {
+-      irc_send("PRIVMSG %s :CHECK -> DNSBL -> %s appears in BL zone %s (%s)",
+-            ss->manual_target->name, ss->ip, bl->name, text_type);
++      irc_send("PRIVMSG %s :CHECK -> DNSBL -> %s appears in %s zone %s (%s)",
++         ss->manual_target->name, ss->ip, (bl->whitelist ? "WL" : "BL"),
++         bl->name, text_type);
+    }
+    else if(!ss->positive)
+    {
+-      /* Only report it if no other scans have found positives yet. */
+-      scan_positive(ss, (bl->kline[0] ? bl->kline : IRCItem->kline),
+-            text_type);
+-
+-      irc_send_channels("DNSBL -> %s!%s@%s appears in BL zone %s (%s)",
+-            ss->irc_nick, ss->irc_username, ss->irc_hostname, bl->name,
+-            text_type);
+-      log_printf("DNSBL -> %s!%s@%s appears in BL zone %s (%s)",
+-            ss->irc_nick, ss->irc_username, ss->irc_hostname, bl->name,
+-            text_type);
++      /* Only report it if no other scans have found positives yet,
++       * all whitelists are done, and the user has not been whitelisted. */
++      if(ss->dnsbl_whitelist_count == 0 && !ss->dnsbl_whitelisted)
++      {
++         scan_positive(ss, (bl->kline[0] ? bl->kline : IRCItem->kline), text_type);
++ 
++         if(bl->alert)  
++            irc_send_channels("DNSBL -> %s!%s@%s appears in %s zone %s (%s)",
++                  ss->irc_nick, ss->irc_username, ss->irc_hostname,
++                  (bl->whitelist ? "WL" : "BL"), bl->name, text_type);
++      }
++      
++      log_printf("DNSBL -> %s!%s@%s appears in %s zone %s (%s)",
++            ss->irc_nick, ss->irc_username, ss->irc_hostname,
++            (bl->whitelist ? "WL" : "BL"), bl->name, text_type);
+    }
+-
+-   /* record stat */
+-   stats_dnsblrecv(bl);
+ }
+ 
+ void dnsbl_result(struct firedns_result *res)
+ {
+ 	struct dnsbl_scan *ds = res->info;
+ 
++   if(ds->bl->whitelist)
++      ds->ss->dnsbl_whitelist_count--; /* one less whitelist to wait for */
++    
+    if(OPT_DEBUG)
+       log_printf("DNSBL -> Lookup result for %s!%s@%s (%s) %d.%d.%d.%d (error: %d)",
+           ds->ss->irc_nick,
+           ds->ss->irc_username,
+           ds->ss->irc_hostname,
+           res->lookup,
+@@ -187,15 +220,21 @@
+           (unsigned char)res->text[2],
+           (unsigned char)res->text[3], fdns_errno);
+ 
+    /* Everything is OK */
+    if(res->text[0] == '\0' && fdns_errno == FDNS_ERR_NXDOMAIN)
+    {
++      /* If any previous positive blacklist result was blocked, waiting
++       * for whitelists, handle it now
++       */
++      if(ds->bl->whitelist && ds->ss->dnsbl_whitelist_count == 0 && ds->ss->dnsbl_positive_bl != NULL)
++         dnsbl_positive(ds->ss, ds->ss->dnsbl_positive_bl, ds->ss->dnsbl_positive_type);
++      
+       if(ds->ss->manual_target != NULL)
+-         irc_send("PRIVMSG %s :CHECK -> DNSBL -> %s does not appear in BL zone %s", 
+-                   ds->ss->manual_target->name, ds->ss->ip,
++         irc_send("PRIVMSG %s :CHECK -> DNSBL -> %s does not appear in %s zone %s", 
++                   ds->ss->manual_target->name, ds->ss->ip, (ds->bl->whitelist ? "WL" : "BL"),
+                     (strlen(ds->ss->ip) < strlen(res->lookup))
+ 						   ? (res->lookup + strlen(ds->ss->ip) + 1)
+ 							: res->lookup);
+ 
+ 
+       ds->ss->scans--;            /* we are done with ss here */
+@@ -207,12 +246,18 @@
+    /* Either an error, or a positive lookup */
+ 
+    if(fdns_errno == FDNS_ERR_NONE)
+       dnsbl_positive(ds->ss, ds->bl, (unsigned char)res->text[3]);
+    else
+ 	{
++      /* If any previous positive blacklist result was blocked, waiting
++       * for whitelists, handle it now
++       */
++      if(ds->bl->whitelist && ds->ss->dnsbl_whitelist_count == 0 && ds->ss->dnsbl_positive_bl != NULL)
++         dnsbl_positive(ds->ss, ds->ss->dnsbl_positive_bl, ds->ss->dnsbl_positive_type);
++       
+       log_printf("DNSBL -> Lookup error on %s: %s", res->lookup,
+ 	      firedns_strerror(fdns_errno));
+ 		if(fdns_errno != FDNS_ERR_TIMEOUT)
+ 			irc_send_channels("DNSBL -> Lookup error on %s: %s", res->lookup,
+ 				firedns_strerror(fdns_errno));
+ 	}
+Index: src/scan.c
+===================================================================
+RCS file: /data/cvs/bopm/src/scan.c,v
+retrieving revision 1.33
+diff -u -6 -r1.33 scan.c
+--- src/scan.c	22 Jun 2003 17:05:30 -0000	1.33
++++ src/scan.c	26 Jun 2003 21:06:49 -0000
+@@ -477,13 +477,18 @@
+    ss->ip = (char *) DupString(user[3]);
+    ss->proof = (char *) DupString(msg);
+ 
+    ss->remote = opm_remote_create(ss->ip);
+    ss->scans = 0;
+    ss->positive = 0;
+-
++   
++   ss->dnsbl_whitelist_count = 0;
++   ss->dnsbl_whitelisted = 0;
++   ss->dnsbl_positive_bl = NULL;
++   ss->dnsbl_positive_type = '\0';
++   
+    ss->manual_target = NULL;
+ 
+    assert(ss->remote);
+    return ss;
+ }
+ 
+Index: src/scan.h
+===================================================================
+RCS file: /data/cvs/bopm/src/scan.h,v
+retrieving revision 1.7
+diff -u -6 -r1.7 scan.h
+--- src/scan.h	20 Jun 2003 04:18:38 -0000	1.7
++++ src/scan.h	26 Jun 2003 21:06:49 -0000
+@@ -12,13 +12,17 @@
+    char *ip;
+    char *proof;
+    OPM_REMOTE_T *remote;
+ 
+    unsigned short scans;
+    unsigned short positive;
+-
++   unsigned short dnsbl_whitelisted;
++   unsigned short dnsbl_whitelist_count;
++   unsigned char dnsbl_positive_type;
++   struct BlacklistConf *dnsbl_positive_bl;
++   
+    struct ChannelConf *manual_target;
+ };
+ 
+ 
+ struct scanner_struct
+ {
