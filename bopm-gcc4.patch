@@ -1,0 +1,37 @@
+Message below:
+
+A C++ savvy friend of mine wrote a patch to make it work with GCC4, and 
+it compiled fine :)
+
+Patch below:
+--- bopm-3.1.2/src/libopm/src/config.c~	2003-06-20 07:18:44.000000000 +0300
++++ bopm-3.1.2/src/libopm/src/config.c	2006-05-19 19:00:33.677742713 +0300
+@@ -90,16 +90,16 @@
+             break;
+ 
+          case OPM_TYPE_STRING:
+-            (char *) ret->vars[i] = strdup("");
++            ret->vars[i] = strdup("");
+             break;
+ 
+          case OPM_TYPE_ADDRESS:
+-            (opm_sockaddr *) ret->vars[i] = MyMalloc(sizeof(opm_sockaddr));
++            ret->vars[i] = MyMalloc(sizeof(opm_sockaddr));
+             memset((opm_sockaddr *) ret->vars[i], 0, sizeof(opm_sockaddr));
+             break; 
+ 
+          case OPM_TYPE_STRINGLIST:
+-            (OPM_LIST_T *) ret->vars[i] = libopm_list_create();
++            ret->vars[i] = libopm_list_create();
+             break;
+          default:
+             ret->vars[i] = NULL;
+@@ -188,7 +188,7 @@
+       case OPM_TYPE_STRING:
+          if((char *) config->vars[key] != NULL)
+             MyFree(config->vars[key]);
+-         (char *) config->vars[key] = strdup((char *) value);
++         config->vars[key] = strdup((char *) value);
+          break;
+ 
+       case OPM_TYPE_INT:
