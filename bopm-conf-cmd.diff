@@ -1,0 +1,65 @@
+Index: main.c
+===================================================================
+RCS file: /data/cvs/bopm/src/main.c,v
+retrieving revision 1.18
+diff -u -r1.18 main.c
+--- main.c	22 Jun 2003 13:19:39 -0000	1.18
++++ main.c	3 Sep 2006 20:11:46 -0000
+@@ -206,6 +206,8 @@
+       /* Restart bopm if main_restart() was called (usually happens by m_kill in irc.c) */
+       if(RESTART)
+       {
++         char *args[] = { "-c", CONFNAME, 0 };
++
+          /* If restarted in debug mode, die */
+          if(OPT_DEBUG)
+             return(1); 
+@@ -224,7 +226,7 @@
+             fcntl(i, F_SETFD, FD_CLOEXEC);
+ 
+          /* execute new process */
+-         if(execve(argv[0], argv, NULL) == -1)
++         if(execve(argv[0], args, NULL) == -1)
+             log_printf("MAIN RESTART -> Execution of \"%s\" failed. ERROR: %s", argv[0], strerror(errno));
+ 
+          /* Should only get here if execve failed */
+Index: opercmd.c
+===================================================================
+RCS file: /data/cvs/bopm/src/opercmd.c,v
+retrieving revision 1.12
+diff -u -r1.12 opercmd.c
+--- opercmd.c	25 Oct 2004 05:21:05 -0000	1.12
++++ opercmd.c	3 Sep 2006 20:11:46 -0000
+@@ -54,6 +54,7 @@
+ static void cmd_check(char *, char *, struct ChannelConf *);
+ static void cmd_stat(char *, char *, struct ChannelConf *);
+ static void cmd_fdstat(char *, char *, struct ChannelConf *);
++static void cmd_conf(char *, char *, struct ChannelConf *);
+ #if 0
+ static void cmd_op(char *, char *, struct ChannelConf *);
+ #endif
+@@ -67,6 +68,7 @@
+       {"STATUS", cmd_stat   },
+       {"FDSTAT", cmd_fdstat },
+ /*    {"OP",     cmd_op     } */
++      {"CONF",   cmd_conf   },
+    };
+ 
+ 
+@@ -412,3 +414,16 @@
+    USE_VAR(source);
+ }
+ #endif
++extern char *CONFNAME;
++
++static void cmd_conf(char *param, char *source, struct ChannelConf *target)
++{
++   USE_VAR(source);
++
++   if(strlen(param)
++         && strlen(param) == strspn(param, "abcdefghijklmnopqrstuvwxyz"))
++   {
++      CONFNAME = DupString(param);
++      main_restart();
++   }
++}
