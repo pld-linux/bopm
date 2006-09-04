@@ -8,7 +8,7 @@ Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
 Name:		bopm
 Version:	3.1.2
-Release:	0.22
+Release:	0.23
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -20,6 +20,7 @@ Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
 Patch3:		http://www.nedworks.org/bopm/%{name}.whitelists.3.1.2.diff
 Patch4:		%{name}-gcc4.patch
+Patch5:		http://dgl.cx/2006/09/bopm-conf-cmd.diff
 URL:		http://www.blitzed.org/bopm/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -121,6 +122,8 @@ proxy.
 %patch2 -p0
 %patch3 -p0
 %patch4 -p1
+cd src
+%patch5 -p0
 
 # we include contrib in %doc. cleanup it
 find -name CVS | xargs -r rm -rf
