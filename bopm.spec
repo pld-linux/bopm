@@ -1,6 +1,7 @@
 #
 # Conditional build:
 %bcond_without	tests	# do not perform "make test"
+%bcond_without	supervise	# install initscript instead of supervise
 #
 %include	/usr/lib/rpm/macros.perl
 %define		pnam	OPM
@@ -15,6 +16,8 @@ Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}
 # Source0-md5:	ab1b7494c4242eef957b5fca61c92b18
 Source1:	%{name}.init
 Source2:	%{name}.conf
+Source3:	%{name}-supervise.tar.bz2
+# Source3-md5:	247c0438a5e2860097d09a374a521151
 Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
@@ -35,10 +38,13 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
-Requires:	rc-scripts >= 0.4.0.17
+%{!?with_supervise:Requires:	rc-scripts >= 0.4.0.17}
+%{?with_supervise:Requires:	daemontools >= 0.76-5}
 Provides:	group(%{name})
 Provides:	user(%{name})
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_supervise	/etc/supervise/%{name}
 
 %description
 The Blitzed Open Proxy Monitor is designed to connect to an IRC server
@@ -150,16 +156,31 @@ cd src/libopm/OPM
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,/var/{run,log}/%{name}}
+install -d $RPM_BUILD_ROOT/var/log/%{name}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+%if %{with supervise}
+install -d $RPM_BUILD_ROOT%{_supervise}
+tar xf %{SOURCE3} -C $RPM_BUILD_ROOT%{_supervise}
+
+install -d $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise
+touch $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise/lock
+touch $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise/status
+mkfifo $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise/control
+mkfifo $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise/ok
+
+%else
+install -D %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+install -d $RPM_BUILD_ROOT/var/run/%{name}
+%endif
+
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 > $RPM_BUILD_ROOT/var/log/%{name}/bopm.log
 > $RPM_BUILD_ROOT/var/log/%{name}/scan.log
 
+# Perl module
 cd src/libopm/OPM
 %{__make} pure_install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -175,13 +196,27 @@ rm -rf $RPM_BUILD_ROOT
 %useradd -u 151 -c "BOPM Daemon" -g %{name} %{name}
 
 %post
+%if %{with supervise}
 /sbin/chkconfig --add %{name}
 %service %{name} restart "BOPM daemon"
+%else
+if [ -d /service/%{name}/supervise ]; then
+	svc -t /service/%{name} /service/%{name}/log
+fi
+%endif
 
 %preun
 if [ "$1" = "0" ]; then
+%if %{with supervise}
+	if [ -d /service/%{name}/supervise ]; then
+		cd /service/%{name}
+		rm /service/%{name}
+		svc -dx . log
+	fi
+%else
 	%service %{name} stop
 	/sbin/chkconfig --del %{name}
+%endif
 fi
 
 %postun
@@ -198,10 +233,23 @@ fi
 %doc ChangeLog INSTALL README bopm.conf.sample
 %doc contrib/ network-bopm/
 %attr(640,root,bopm) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}.conf
-%attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(755,root,root) %{_sbindir}/%{name}
 
+%if %{with supervise}
+%attr(1755,root,root) %dir %{_supervise}
+%attr(755,root,root) %{_supervise}/run
+%attr(700,root,root) %dir %{_supervise}/supervise
+
+%attr(600,root,root) %config(noreplace) %verify(not md5 mtime size) %ghost %{_supervise}/supervise/*
+%attr(1755,root,root) %dir %{_supervise}/log
+%attr(755,root,root) %{_supervise}/log/run
+%attr(700,root,root) %dir %{_supervise}/log/supervise
+%attr(600,root,root) %config(noreplace) %verify(not md5 mtime size) %ghost %{_supervise}/log/supervise/*
+%else
+%attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(770,root,bopm) %dir /var/run/%{name}
+%endif
+
 %attr(770,root,bopm) %dir /var/log/%{name}
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/bopm.log
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/scan.log
