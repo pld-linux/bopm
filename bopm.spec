@@ -6,7 +6,7 @@
 %include	/usr/lib/rpm/macros.perl
 %define		pnam	OPM
 Summary:	Open proxy monitor and blocker, designed for use with ircds
-Summary(pl):	Monitorowanie i blokowanie otwartych proxy do u¿ywania z ircd
+Summary(pl.UTF-8):   Monitorowanie i blokowanie otwartych proxy do uÅ¼ywania z ircd
 Name:		bopm
 Version:	3.1.2
 Release:	0.28
@@ -59,57 +59,57 @@ against a DNS-Based Blacklist (similar to MAPS RBL) and can be
 configured to report new proxies back to the Blitzed Open Proxy
 Monitoring project.
 
-%description -l pl
-Blitzed Open Proxy Monitor jest zaprojektowany tak, ¿e ³±czy siê z
-serwerem IRC i staje operatorem. Nastêpnie ogl±da informacje o
-po³±czeniach w celu skanowania wszystkich klientów pod k±tem otwartych
-(niebezpiecznych) proxy. Takie niebezpieczne proxy zwykle s± u¿ywane
-do spamowania, floodowania i innych nadu¿yæ.
+%description -l pl.UTF-8
+Blitzed Open Proxy Monitor jest zaprojektowany tak, Å¼e Å‚Ä…czy siÄ™ z
+serwerem IRC i staje operatorem. NastÄ™pnie oglÄ…da informacje o
+poÅ‚Ä…czeniach w celu skanowania wszystkich klientÃ³w pod kÄ…tem otwartych
+(niebezpiecznych) proxy. Takie niebezpieczne proxy zwykle sÄ… uÅ¼ywane
+do spamowania, floodowania i innych naduÅ¼yÄ‡.
 
-BOPM jest w stanie wykryæ WinGates, proxy HTTP, proxy SOCKS 4/5 oraz
-routery Cisco z domy¶lnymi has³ami. BOPM obs³uguje tak¿e sprawdzanie
-czarnych list opartych na DNS (takich jak MAPS RBL) i mo¿e byæ
-skonfigurowany do zg³aszania nowych proxy z powrotem do projektu
+BOPM jest w stanie wykryÄ‡ WinGates, proxy HTTP, proxy SOCKS 4/5 oraz
+routery Cisco z domyÅ›lnymi hasÅ‚ami. BOPM obsÅ‚uguje takÅ¼e sprawdzanie
+czarnych list opartych na DNS (takich jak MAPS RBL) i moÅ¼e byÄ‡
+skonfigurowany do zgÅ‚aszania nowych proxy z powrotem do projektu
 Blitzed Open Proxy Monitoring.
 
 %package libs
 Summary:	libopm open proxy scanning library
-Summary(pl):	Biblioteka libopm do szukania otwartych proxy
+Summary(pl.UTF-8):   Biblioteka libopm do szukania otwartych proxy
 Group:		Libraries
 
 %description libs
 libopm open proxy scanning library.
 
-%description libs -l pl
+%description libs -l pl.UTF-8
 Biblioteka libopm do szukania otwartych proxy.
 
 %package devel
 Summary:	Header files for libopm library
-Summary(pl):	Pliki nag³ówkowe biblioteki libopm
+Summary(pl.UTF-8):   Pliki nagÅ‚Ã³wkowe biblioteki libopm
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 
 %description devel
 This is the package containing the header files for libopm library.
 
-%description devel -l pl
-Ten pakiet zawiera pliki nag³ówkowe biblioteki libopm.
+%description devel -l pl.UTF-8
+Ten pakiet zawiera pliki nagÅ‚Ã³wkowe biblioteki libopm.
 
 %package static
 Summary:	Static libopm library
-Summary(pl):	Statyczna biblioteka libopm
+Summary(pl.UTF-8):   Statyczna biblioteka libopm
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
 %description static
 Static libopm library.
 
-%description static -l pl
+%description static -l pl.UTF-8
 Statyczna biblioteka libopm.
 
 %package -n perl-%{pnam}
 Summary:	OPM - Perl interface to libopm open proxy scanning library
-Summary(pl):	OPM - perlowy interfejs do biblioteki libopm szukaj±cej otwartych proxy
+Summary(pl.UTF-8):   OPM - perlowy interfejs do biblioteki libopm szukajÄ…cej otwartych proxy
 Group:		Development/Languages/Perl
 Requires:	%{name}-libs = %{version}-%{release}
 # should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
@@ -117,8 +117,8 @@ Requires:	%{name}-libs = %{version}-%{release}
 %description -n perl-%{pnam}
 OPM - Perl interface to libopm open proxy scanning library.
 
-%description -n perl-%{pnam} -l pl
-OPM - perlowy interfejs do biblioteki libopm szukaj±cej otwartych
+%description -n perl-%{pnam} -l pl.UTF-8
+OPM - perlowy interfejs do biblioteki libopm szukajÄ…cej otwartych
 proxy.
 
 %prep
