@@ -6,7 +6,7 @@
 %include	/usr/lib/rpm/macros.perl
 %define		pnam	OPM
 Summary:	Open proxy monitor and blocker, designed for use with ircds
-Summary(pl.UTF-8):   Monitorowanie i blokowanie otwartych proxy do używania z ircd
+Summary(pl.UTF-8):	Monitorowanie i blokowanie otwartych proxy do używania z ircd
 Name:		bopm
 Version:	3.1.2
 Release:	0.28
@@ -74,7 +74,7 @@ Blitzed Open Proxy Monitoring.
 
 %package libs
 Summary:	libopm open proxy scanning library
-Summary(pl.UTF-8):   Biblioteka libopm do szukania otwartych proxy
+Summary(pl.UTF-8):	Biblioteka libopm do szukania otwartych proxy
 Group:		Libraries
 
 %description libs
@@ -85,7 +85,7 @@ Biblioteka libopm do szukania otwartych proxy.
 
 %package devel
 Summary:	Header files for libopm library
-Summary(pl.UTF-8):   Pliki nagłówkowe biblioteki libopm
+Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki libopm
 Group:		Development/Libraries
 Requires:	%{name}-libs = %{version}-%{release}
 
@@ -97,7 +97,7 @@ Ten pakiet zawiera pliki nagłówkowe biblioteki libopm.
 
 %package static
 Summary:	Static libopm library
-Summary(pl.UTF-8):   Statyczna biblioteka libopm
+Summary(pl.UTF-8):	Statyczna biblioteka libopm
 Group:		Development/Libraries
 Requires:	%{name}-devel = %{version}-%{release}
 
@@ -109,7 +109,7 @@ Statyczna biblioteka libopm.
 
 %package -n perl-%{pnam}
 Summary:	OPM - Perl interface to libopm open proxy scanning library
-Summary(pl.UTF-8):   OPM - perlowy interfejs do biblioteki libopm szukającej otwartych proxy
+Summary(pl.UTF-8):	OPM - perlowy interfejs do biblioteki libopm szukającej otwartych proxy
 Group:		Development/Languages/Perl
 Requires:	%{name}-libs = %{version}-%{release}
 # should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
