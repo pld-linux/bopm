@@ -1,3 +1,10 @@
+# TODO
+# - ac that i don't know how to fix:
+#+ autoconf
+#configure.in:51: error: possibly undefined macro: AC_FUNC_SNPRINTF
+#      If this token and others are legitimate, please use m4_pattern_allow.
+#      See the Autoconf documentation.
+#
 #
 # Conditional build:
 %bcond_without	tests	# do not perform "make test"
@@ -8,12 +15,12 @@
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl.UTF-8):	Monitorowanie i blokowanie otwartych proxy do używania z ircd
 Name:		bopm
-Version:	3.1.2
-Release:	0.28
+Version:	3.1.3
+Release:	0.1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
-# Source0-md5:	ab1b7494c4242eef957b5fca61c92b18
+# Source0-md5:	643c7090b32dfe09a38b5440b2c480e3
 Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}-supervise.tar.bz2
@@ -22,9 +29,8 @@ Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
 Patch3:		http://www.nedworks.org/bopm/%{name}.whitelists.3.1.2.diff
-Patch4:		%{name}-gcc4.patch
-Patch5:		http://dgl.cx/2006/09/bopm-conf-cmd.diff
-URL:		http://www.blitzed.org/bopm/
+Patch4:		http://dgl.cx/2006/09/bopm-conf-cmd.diff
+URL:		http://wiki.blitzed.org/BOPM
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
@@ -127,9 +133,8 @@ proxy.
 %patch1 -p1
 %patch2 -p0
 %patch3 -p0
-%patch4 -p1
 cd src
-%patch5 -p0
+%patch4 -p0
 
 # we include contrib in %doc. cleanup it
 find -name CVS | xargs -r rm -rf
