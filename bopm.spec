@@ -10,8 +10,6 @@
 %bcond_without	tests	# do not perform "make test"
 %bcond_without	supervise	# install initscript instead of supervise
 #
-%include	/usr/lib/rpm/macros.perl
-%define		pnam	OPM
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl.UTF-8):	Monitorowanie i blokowanie otwartych proxy do używania z ircd
 Name:		bopm
@@ -25,6 +23,10 @@ Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}-supervise.tar.bz2
 # Source3-md5:	247c0438a5e2860097d09a374a521151
+Source4: http://autoconf-archive.cryp.to/ac_func_snprintf.m4
+# Source4-md5:	9a21dbeadbd731b324e7f740aadea697
+Source5:	http://www.sfr-fresh.com/unix/www/cherokee-0.7.2.tar.gz:t/cherokee-0.7.2/m4/etr_socket_nsl.m4
+# Source5-md5:	137b516e92db49874d3ed1dcf45ea4a9
 Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
@@ -34,7 +36,6 @@ URL:		http://wiki.blitzed.org/BOPM
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libtool
-BuildRequires:	rpm-perlprov >= 4.1-13
 BuildRequires:	rpmbuild(macros) >= 1.268
 %{!?with_supervise:Requires(post,preun):	/sbin/chkconfig}
 Requires(postun):	/usr/sbin/groupdel
@@ -113,20 +114,6 @@ Static libopm library.
 %description static -l pl.UTF-8
 Statyczna biblioteka libopm.
 
-%package -n perl-%{pnam}
-Summary:	OPM - Perl interface to libopm open proxy scanning library
-Summary(pl.UTF-8):	OPM - perlowy interfejs do biblioteki libopm szukającej otwartych proxy
-Group:		Development/Languages/Perl
-Requires:	%{name}-libs = %{version}-%{release}
-# should here be Version: 0.01 due to "Provides: OPM.so perl(OPM) = 0.01"?
-
-%description -n perl-%{pnam}
-OPM - Perl interface to libopm open proxy scanning library.
-
-%description -n perl-%{pnam} -l pl.UTF-8
-OPM - perlowy interfejs do biblioteki libopm szukającej otwartych
-proxy.
-
 %prep
 %setup -q
 %patch0 -p1
@@ -141,8 +128,10 @@ find -name CVS | xargs -r rm -rf
 rm -f contrib/bopm.spec
 
 %build
+install %{SOURCE4} .
+install %{SOURCE5} .
 %{__libtoolize}
-%{__aclocal}
+%{__aclocal} -I .
 %{__autoconf}
 %{__autoheader}
 %{__automake}
@@ -151,13 +140,6 @@ rm -f contrib/bopm.spec
 	--bindir=%{_sbindir}
 
 %{__make}
-
-cd src/libopm/OPM
-%{__perl} Makefile.PL \
-	INSTALLDIRS=vendor
-%{__make} \
-	OPTIMIZE="%{rpmcflags}"
-%{?with_tests:%{__make} test}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -184,14 +166,6 @@ install -d $RPM_BUILD_ROOT/var/run/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 > $RPM_BUILD_ROOT/var/log/%{name}/bopm.log
 > $RPM_BUILD_ROOT/var/log/%{name}/scan.log
-
-# Perl module
-cd src/libopm/OPM
-%{__make} pure_install \
-	DESTDIR=$RPM_BUILD_ROOT
-rm -f $RPM_BUILD_ROOT%{perl_vendorarch}/auto/%{pnam}/.packlist
-install -d $RPM_BUILD_ROOT%{_examplesdir}/perl-%{pnam}-%{version}
-mv $RPM_BUILD_ROOT{%{perl_vendorarch},%{_examplesdir}/perl-%{pnam}-%{version}}/bopchecker.pl
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -277,12 +251,3 @@ fi
 %files static
 %defattr(644,root,root,755)
 %{_libdir}/libopm.a
-
-%files -n perl-%{pnam}
-%defattr(644,root,root,755)
-%{perl_vendorarch}/OPM.pm
-%dir %{perl_vendorarch}/auto/OPM
-%{perl_vendorarch}/auto/OPM/OPM.bs
-%attr(755,root,root) %{perl_vendorarch}/auto/OPM/OPM.so
-%{_examplesdir}/perl-OPM-%{version}
-%{_mandir}/man3/OPM.3pm*
