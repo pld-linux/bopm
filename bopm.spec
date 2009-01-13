@@ -23,7 +23,7 @@ Source1:	%{name}.init
 Source2:	%{name}.conf
 Source3:	%{name}-supervise.tar.bz2
 # Source3-md5:	247c0438a5e2860097d09a374a521151
-Source4: http://autoconf-archive.cryp.to/ac_func_snprintf.m4
+Source4:	http://autoconf-archive.cryp.to/ac_func_snprintf.m4
 # Source4-md5:	9a21dbeadbd731b324e7f740aadea697
 Source5:	http://www.sfr-fresh.com/unix/www/cherokee-0.7.2.tar.gz:t/cherokee-0.7.2/m4/etr_socket_nsl.m4
 # Source5-md5:	137b516e92db49874d3ed1dcf45ea4a9
@@ -31,7 +31,7 @@ Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
 Patch3:		http://www.nedworks.org/bopm/%{name}.whitelists.3.1.2.diff
-Patch4:		http://dgl.cx/2006/09/bopm-conf-cmd.diff
+Patch4:		http://dgl.cx/2006/09/%{name}-conf-cmd.diff
 URL:		http://wiki.blitzed.org/BOPM
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -45,8 +45,8 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name}-libs = %{version}-%{release}
-%{!?with_supervise:Requires:	rc-scripts >= 0.4.0.17}
 %{?with_supervise:Requires:	daemontools >= 0.76-5}
+%{!?with_supervise:Requires:	rc-scripts >= 0.4.0.17}
 Provides:	group(%{name})
 Provides:	user(%{name})
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -239,6 +239,7 @@ fi
 %files libs
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libopm.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libopm.so.0
 
 %files devel
 %defattr(644,root,root,755)
@@ -247,6 +248,7 @@ fi
 %{_includedir}/opm_error.h
 %{_includedir}/opm_types.h
 %{_libdir}/libopm.la
+%{_libdir}/libopm.so
 
 %files static
 %defattr(644,root,root,755)
