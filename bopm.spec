@@ -14,7 +14,7 @@ Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl.UTF-8):	Monitorowanie i blokowanie otwartych proxy do używania z ircd
 Name:		bopm
 Version:	3.1.3
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://static.blitzed.org/www.blitzed.org/bopm/files/%{name}-%{version}.tar.gz
@@ -229,9 +229,9 @@ fi
 %attr(600,root,root) %config(noreplace) %verify(not md5 mtime size) %ghost %{_supervise}/log/supervise/*
 %else
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-%attr(770,root,bopm) %dir /var/run/%{name}
 %endif
 
+%attr(770,root,bopm) %dir /var/run/%{name}
 %attr(770,root,bopm) %dir /var/log/%{name}
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/bopm.log
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/scan.log
