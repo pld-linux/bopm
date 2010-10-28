@@ -9,7 +9,6 @@
 # Conditional build:
 %bcond_without	tests	# do not perform "make test"
 %bcond_without	supervise	# install initscript instead of supervise
-#
 Summary:	Open proxy monitor and blocker, designed for use with ircds
 Summary(pl.UTF-8):	Monitorowanie i blokowanie otwartych proxy do używania z ircd
 Name:		bopm
@@ -167,6 +166,8 @@ install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 > $RPM_BUILD_ROOT/var/log/%{name}/bopm.log
 > $RPM_BUILD_ROOT/var/log/%{name}/scan.log
 
+rm $RPM_BUILD_ROOT%{_datadir}/bopm.conf.blitzed
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -212,7 +213,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc ChangeLog INSTALL README bopm.conf.sample
+%doc ChangeLog INSTALL README bopm.conf.sample bopm.conf.blitzed
 %doc contrib/ network-bopm/
 %attr(640,root,bopm) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/%{name}.conf
 %attr(755,root,root) %{_sbindir}/%{name}
