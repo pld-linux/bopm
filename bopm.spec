@@ -34,6 +34,8 @@ Patch4:		http://dgl.cx/2006/09/%{name}-conf-cmd.diff
 URL:		http://wiki.blitzed.org/BOPM
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	bison
+BuildRequires:	flex
 BuildRequires:	libtool
 BuildRequires:	rpmbuild(macros) >= 1.268
 %{!?with_supervise:Requires(post,preun):	/sbin/chkconfig}
@@ -50,6 +52,7 @@ Provides:	group(%{name})
 Provides:	user(%{name})
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
+%undefine	__cxx
 %define		_supervise	/etc/supervise/%{name}
 
 %description
