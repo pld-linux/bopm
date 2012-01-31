@@ -26,6 +26,7 @@ Source4:	http://autoconf-archive.cryp.to/ac_func_snprintf.m4
 # Source4-md5:	9a21dbeadbd731b324e7f740aadea697
 Source5:	http://www.sfr-fresh.com/unix/www/cherokee-0.7.2.tar.gz:t/cherokee-0.7.2/m4/etr_socket_nsl.m4
 # Source5-md5:	137b516e92db49874d3ed1dcf45ea4a9
+Source6:	%{name}.tmpfiles
 Patch0:		%{name}-DESTDIR.patch
 Patch1:		%{name}-shared.patch
 Patch2:		%{name}-cr-connect.patch
@@ -151,7 +152,9 @@ install -d $RPM_BUILD_ROOT/var/log/%{name}
 	DESTDIR=$RPM_BUILD_ROOT
 
 %if %{with supervise}
-install -d $RPM_BUILD_ROOT%{_supervise}
+install -d $RPM_BUILD_ROOT%{_supervise} \
+	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d
+
 tar xf %{SOURCE3} -C $RPM_BUILD_ROOT%{_supervise}
 
 install -d $RPM_BUILD_ROOT%{_supervise}/{,log/}supervise
@@ -168,6 +171,8 @@ install -d $RPM_BUILD_ROOT/var/run/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/%{name}.conf
 > $RPM_BUILD_ROOT/var/log/%{name}/bopm.log
 > $RPM_BUILD_ROOT/var/log/%{name}/scan.log
+
+install %{SOURCE6} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
 
 rm $RPM_BUILD_ROOT%{_datadir}/bopm.conf.blitzed
 
@@ -234,7 +239,7 @@ fi
 %else
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %endif
-
+/usr/lib/tmpfiles.d/%{name}.conf
 %attr(770,root,bopm) %dir /var/run/%{name}
 %attr(770,root,bopm) %dir /var/log/%{name}
 %attr(640,bopm,bopm) %ghost /var/log/%{name}/bopm.log
