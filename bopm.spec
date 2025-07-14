@@ -119,12 +119,12 @@ Statyczna biblioteka libopm.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
-%patch2 -p0
-%patch3 -p0
+%patch -P0 -p1
+%patch -P1 -p1
+%patch -P2 -p0
+%patch -P3 -p0
 cd src
-%patch4 -p0
+%patch -P4 -p0
 
 # we include contrib in %doc. cleanup it
 find -name CVS | xargs -r rm -rf
